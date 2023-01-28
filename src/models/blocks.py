@@ -10,9 +10,6 @@ class ScaledDotAttention(nn.Module):
         self.softmax = nn.Softmax(dim = 0)
 
     def forward(self, keys: torch.Tensor, queries: torch.Tensor, values: torch.Tensor):
-        print(keys.shape)
-        print(queries.shape)
-        print(values.shape)
         x = torch.mm(keys, torch.transpose(queries,0,1))
         x = self.softmax(x/self.keys_dim_sqrt)
         x = torch.mm(x,values)
@@ -22,8 +19,28 @@ class ScaledDotAttention(nn.Module):
 class MultiHeadAttention(nn.Module):
     def __init__(self, model_dim, n_heads = 8) -> None:
         super().__init__()
+        
+        assert model_dim%n_heads==0
+        
         self.model_dim = model_dim
+        self.split_dim = model_dim / n_heads
         self.n_heads = n_heads
+
+        self.attention_layer = ScaledDotAttention(self.split_dim)
+        self.m_proj = nn.Linear(self.model_dim, self.model_dim)
+        self.q_proj = nn.Linear(self.split_dim, self.model_dim)
+        self.k_proj = nn.Linear(self.split_dim, self.model_dim)
+        self.v_proj = nn.Linear(self.split_dim, self.model_dim)
+
+        self._reset_parameters()
+
+    def _reset_parameters(self):
+        # Original Transformer initialization, see PyTorch documentation
+        nn.init.xavier_uniform_(self.q_proj.weight)
+        self.q_proj.bias.data.fill_(0)
+        nn.init.xavier_uniform_(self.m_proj.weight)
+        self.m_proj.bias.data.fill_(0)
+
 
     def forward(self, x):
         return x
@@ -61,7 +78,3 @@ class FeedForwardNetwork(nn.Module):
         x = torch.add(torch.mm(x, self.weights_1.t()), self.biases_1.t())
         return x
 
-if __name__ == "__main__":
-    sda = ScaledDotAttention(5)
-    input = torch.tensor([[0.8279],[0.1293],[0.2629],[0.5056],[0.1980]])
-    output = sda(input, input, input)
