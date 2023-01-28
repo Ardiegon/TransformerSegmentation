@@ -1,7 +1,8 @@
 import os
-imoort torch
+import torch
 
 from src.utilities.filesystem import load_dict
+from src.models.blocks import ScaledDotAttention, MultiHeadAttention, FeedForwardNetwork
 
 def get_model(model, **parameters):
     return globals()[model](parameters)
