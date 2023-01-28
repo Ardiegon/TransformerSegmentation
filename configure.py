@@ -1,8 +1,7 @@
 import os
 import site
 
-
-def set_path_via_sys():
+def set_path_via_site():
     root_path = os.path.join(os.getcwd())
     src_path = os.path.join(os.getcwd(), "src")
     FIND_MY_PACKAGES = (
@@ -32,7 +31,7 @@ def create_folder(name):
 
 
 def main():
-    set_path_via_sys()
+    set_path_via_site()
     handle_folders_structure()
 
 
